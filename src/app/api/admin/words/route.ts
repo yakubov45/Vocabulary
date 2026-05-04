@@ -3,7 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Word from '@/models/Word';
 
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 export const revalidate = 0;
 
