@@ -15,9 +15,14 @@ export async function POST(req: NextRequest) {
     // 2. Parse form data to get the uploaded file
     const formData = await req.formData();
     const file = formData.get('file') as File;
+    const category = formData.get('category') as string;
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    }
+
+    if (!category) {
+      return NextResponse.json({ error: 'Please provide a category title' }, { status: 400 });
     }
 
     // 3. Parse .json file
@@ -34,18 +39,25 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Map the data into Mongoose format
+    const cleanText = (text: string) => {
+      if (!text) return "";
+      // Removes patterns like [cite: 8], [cite: ], etc.
+      return text.replace(/\[cite:.*?\]/g, "").trim();
+    };
+
     const wordsToInsert = jsonData.map((item: any) => {
-      const english_word = item.english_word || '';
-      const uzbek_meaning = item.uzbek_meaning || '';
+      const english_word = cleanText(item.english_word || '');
+      const uzbek_meaning = cleanText(item.uzbek_meaning || '');
       const examples = [];
       
-      if (item.example_1) examples.push(item.example_1);
-      if (item.example_2) examples.push(item.example_2);
+      if (item.example_1) examples.push(cleanText(item.example_1));
+      if (item.example_2) examples.push(cleanText(item.example_2));
       
       return {
         english_word,
         uzbek_meaning,
         examples,
+        category,
       };
     }).filter(word => word.english_word && word.uzbek_meaning); // Only keep valid entries
 
@@ -59,11 +71,13 @@ export async function POST(req: NextRequest) {
     // Automatically sort them alphabetically by english_word before insert
     wordsToInsert.sort((a, b) => a.english_word.localeCompare(b.english_word));
 
+    console.log(`Inserting ${wordsToInsert.length} words into category: ${category}`);
     const result = await Word.insertMany(wordsToInsert, { ordered: false });
 
     return NextResponse.json({
       message: 'Words successfully uploaded and inserted',
       count: result.length,
+      category: category,
       sample: result.slice(0, 3)
     }, { status: 201 });
 

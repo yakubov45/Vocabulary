@@ -19,20 +19,48 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10000'); // Changed default to 10000
-    const skip = (page - 1) * limit;
+    
+    const query = {};
+    const total = await Word.countDocuments(query);
 
-    const words = await Word.find({})
-      .sort({ english_word: 1 })
-      .skip(skip)
+    const cleanText = (text: string) => text ? text.replace(/\[cite:.*?\]/g, "").trim() : "";
+
+    const words = await Word.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
       .limit(limit);
 
-    const total = await Word.countDocuments();
+    const cleanedWords = words.map(w => ({
+      ...w.toObject(),
+      english_word: cleanText(w.english_word),
+      uzbek_meaning: cleanText(w.uzbek_meaning),
+      examples: w.examples?.map(ex => cleanText(ex)) || []
+    }));
 
     return NextResponse.json({
-      words,
+      words: cleanedWords,
       total,
       page,
       pages: Math.ceil(total / limit)
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Server Error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any)?.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await dbConnect();
+    const result = await Word.deleteMany({});
+    
+    return NextResponse.json({ 
+      message: 'All words deleted successfully',
+      count: result.deletedCount 
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Server Error' }, { status: 500 });

@@ -7,9 +7,17 @@ export const revalidate = 0; // Disable caching to always return random words
 export async function GET(req: NextRequest) {
   try {
     await dbConnect();
+    
+    const searchParams = req.nextUrl.searchParams;
+    const categoryParam = searchParams.get('category');
+    const categories = categoryParam ? categoryParam.split(',').filter(Boolean) : [];
+    const matchStage = categories.length > 0 ? { $match: { category: { $in: categories } } } : { $match: {} };
 
     // 1. Fetch one random word (the question)
-    const randomQuestionWord = await Word.aggregate([{ $sample: { size: 1 } }]);
+    const randomQuestionWord = await Word.aggregate([
+      matchStage,
+      { $sample: { size: 1 } }
+    ]);
 
     if (!randomQuestionWord || randomQuestionWord.length === 0) {
       return NextResponse.json({ error: 'No words found in database. Please upload words first.' }, { status: 404 });
@@ -17,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     const targetWord = randomQuestionWord[0];
 
-    // 2. Fetch 3 random uzbek_meanings from other documents where the ID does not match the current word
+    // 2. Fetch 3 random uzbek_meanings (Distractors can be from ANY category for more variety)
     const randomIncorrectWords = await Word.aggregate([
       { $match: { _id: { $ne: targetWord._id } } }, // Exclude the correct word
       { $sample: { size: 3 } }, // Get 3 random words
@@ -36,12 +44,14 @@ export async function GET(req: NextRequest) {
       [options[i], options[j]] = [options[j], options[i]];
     }
 
+    const cleanText = (text: string) => text ? text.replace(/\[cite:.*?\]/g, "").trim() : "";
+
     // 5. Return the expected data
     return NextResponse.json({
-      english_word: targetWord.english_word,
-      correct_meaning: targetWord.uzbek_meaning,
-      options: options,
-      examples: targetWord.examples,
+      english_word: cleanText(targetWord.english_word),
+      correct_meaning: cleanText(targetWord.uzbek_meaning),
+      options: options.map(opt => cleanText(opt)),
+      examples: targetWord.examples?.map((ex: string) => cleanText(ex)) || [],
     }, { status: 200 });
 
   } catch (error: any) {

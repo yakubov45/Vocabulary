@@ -4,6 +4,7 @@ export interface IWord extends Document {
   english_word: string;
   uzbek_meaning: string;
   examples: string[];
+  category: string;
   createdAt: Date;
 }
 
@@ -23,6 +24,12 @@ const WordSchema: Schema = new Schema({
     validate: [arrayLimit, '{PATH} exceeds the limit of 2'],
     default: [],
   },
+  category: {
+    type: String,
+    required: [true, 'Category is required'],
+    trim: true,
+    index: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -31,6 +38,11 @@ const WordSchema: Schema = new Schema({
 
 function arrayLimit(val: string[]) {
   return val.length <= 2;
+}
+
+// In development, we want to ensure the model reflects schema changes (like adding 'category')
+if (mongoose.models.Word && !mongoose.models.Word.schema.paths.category) {
+  delete mongoose.models.Word;
 }
 
 const Word: Model<IWord> = mongoose.models.Word || mongoose.model<IWord>('Word', WordSchema);
