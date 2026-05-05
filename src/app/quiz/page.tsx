@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -16,7 +16,7 @@ interface QuizData {
   examples: string[];
 }
 
-export default function QuizPage() {
+function QuizContent() {
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -177,5 +177,17 @@ export default function QuizPage() {
         ) : null}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#fafafa] dark:bg-slate-950 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <QuizContent />
+    </Suspense>
   );
 }
