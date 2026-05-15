@@ -70,18 +70,18 @@ export default function QuizOption({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "group relative flex items-center justify-between p-4 sm:p-5 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 text-left",
+        "group relative flex items-center justify-between p-4 sm:p-5 rounded-xl sm:rounded-2xl border transition-all duration-300 text-left outline-none focus:outline-none",
         "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm",
-        !disabled && "hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md",
+        !disabled && "hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md",
         
         // Correct Answer Styling
-        showResult && isTargetCorrect && "border-emerald-500 dark:border-emerald-400 text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-500/10",
+        showResult && isTargetCorrect && "border-emerald-500 dark:border-emerald-400 border-2 text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-500/10",
         
         // Selected Wrong Answer Styling
-        isSelected && isCorrect === false && "border-rose-500 dark:border-rose-400 text-rose-700 dark:text-rose-300 bg-rose-50/50 dark:bg-rose-500/10",
+        isSelected && isCorrect === false && "border-rose-500 dark:border-rose-400 border-2 text-rose-700 dark:text-rose-300 bg-rose-50/50 dark:bg-rose-500/10",
         
         // Other options after selection
-        showResult && !isTargetCorrect && !isSelected && "opacity-40 grayscale-[0.2]"
+        showResult && !isTargetCorrect && !isSelected && "opacity-40 grayscale-[0.2] border-slate-100 dark:border-slate-800"
       )}
     >
       <div className="flex items-center gap-4">
