@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, BrainCircuit, Sparkles, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, BookOpen } from "lucide-react";
 
 export default function Home() {
   const containerVariants = {
@@ -54,14 +54,6 @@ export default function Home() {
           animate="visible"
           className="flex flex-col items-center text-center"
         >
-          <motion.div
-            variants={itemVariants}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold mb-8"
-          >
-            <Sparkles size={16} />
-            <span>Master 1000+ words with AI-driven learning</span>
-          </motion.div>
-
           <motion.h1
             variants={itemVariants}
             className="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-[1.1]"
@@ -94,49 +86,6 @@ export default function Home() {
           </motion.div>
         </motion.div>
       </section>
-
-      {/* Features Grid */}
-      <section className="max-w-7xl mx-auto px-6 py-24 border-t border-slate-50 dark:border-slate-900">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <FeatureCard
-            icon={<BrainCircuit size={28} />}
-            title="Smart Quiz System"
-            description="Our algorithm generates dynamic distractors to ensure you truly understand every word's meaning."
-          />
-          <FeatureCard
-            icon={<Zap size={28} />}
-            title="Bulk JSON Import"
-            description="Admins can upload thousands of words in seconds using our seamless JSON parsing engine."
-          />
-          <FeatureCard
-            icon={<ShieldCheck size={28} />}
-            title="Secure Dashboard"
-            description="Protected routes and robust authentication keep your vocabulary database safe and private."
-          />
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="max-w-7xl mx-auto px-6 py-12 text-center text-slate-400 text-sm">
-        <p>© 2024 VocabFlow. Built for world-class learners.</p>
-      </footer>
     </main>
-  );
-}
-
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
-  return (
-    <motion.div
-      whileHover={{ y: -5 }}
-      className="flex flex-col items-start"
-    >
-      <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-6 shadow-sm">
-        {icon}
-      </div>
-      <h3 className="text-xl font-bold mb-3 dark:text-white">{title}</h3>
-      <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
-        {description}
-      </p>
-    </motion.div>
   );
 }

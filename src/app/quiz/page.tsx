@@ -17,57 +17,102 @@ interface QuizData {
 }
 
 function QuizContent() {
-  const [quiz, setQuiz] = useState<QuizData | null>(null);
+  const [sessionWords, setSessionWords] = useState<QuizData[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState(0);
-  const [totalAttempted, setTotalAttempted] = useState(0);
+  const [quizMode, setQuizMode] = useState<"random" | "sequential" | null>(null);
 
   const searchParams = useSearchParams();
   const category = searchParams.get("category");
   const rank = searchParams.get("rank");
 
-  const fetchQuiz = async () => {
+  const startSession = async (mode: "random" | "sequential") => {
+    setQuizMode(mode);
     setLoading(true);
-    setSelectedOption(null);
-    setIsCorrect(null);
     try {
-      let url = "/api/quiz/generate";
-      const params = new URLSearchParams();
-      if (category) params.append("category", category);
-      if (rank) params.append("rank", rank);
-      
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
+      let url = `/api/quiz/generate?all=true&mode=${mode}`;
+      if (category) url += `&category=${encodeURIComponent(category)}`;
+      if (rank) url += `&rank=${encodeURIComponent(rank)}`;
       
       const res = await fetch(url);
       const data = await res.json();
-      if (data.english_word) {
-        setQuiz(data);
+      if (data.words && data.words.length > 0) {
+        setSessionWords(data.words);
+        setCurrentIndex(0);
       }
     } catch (error) {
-      console.error("Error fetching quiz:", error);
+      console.error("Error starting session:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchQuiz();
-  }, []);
+  const handleNext = () => {
+    if (currentIndex < sessionWords.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setSelectedOption(null);
+      setIsCorrect(null);
+    } else {
+      // Quiz finished
+      setSessionWords([]);
+      setQuizMode(null);
+    }
+  };
 
   const handleOptionClick = (option: string) => {
-    if (selectedOption || !quiz) return;
+    if (selectedOption || sessionWords.length === 0) return;
     setSelectedOption(option);
+    const quiz = sessionWords[currentIndex];
     const correct = option === quiz.correct_meaning;
     setIsCorrect(correct);
     if (correct) setScore((s) => s + 1);
-    setTotalAttempted((t) => t + 1);
   };
 
-  const progress = totalAttempted === 0 ? 0 : Math.min((totalAttempted / 10) * 100, 100);
+  const currentQuiz = sessionWords[currentIndex];
+  const progress = sessionWords.length === 0 ? 0 : ((currentIndex + 1) / sessionWords.length) * 100;
+
+  if (!quizMode) {
+    return (
+      <div className="min-h-screen bg-[#fafafa] dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl"
+        >
+          <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/20">
+            <Trophy className="text-white" size={40} />
+          </div>
+          <h1 className="text-3xl font-black mb-2 dark:text-white">Choose Quiz Mode</h1>
+          <p className="text-slate-500 mb-10 font-medium">How would you like to learn today?</p>
+          
+          <div className="space-y-4">
+            <button 
+              onClick={() => startSession("random")}
+              className="w-full p-6 bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 border-2 border-transparent hover:border-indigo-500 rounded-2xl transition-all text-left group"
+            >
+              <h3 className="font-bold text-lg dark:text-white group-hover:text-indigo-600">Random Mode</h3>
+              <p className="text-sm text-slate-500">Shuffled words, no repetitions</p>
+            </button>
+            
+            <button 
+              onClick={() => startSession("sequential")}
+              className="w-full p-6 bg-slate-50 dark:bg-slate-800/50 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-2 border-transparent hover:border-emerald-500 rounded-2xl transition-all text-left group"
+            >
+              <h3 className="font-bold text-lg dark:text-white group-hover:text-emerald-600">Sequential Mode</h3>
+              <p className="text-sm text-slate-500">In order of addition (from JSON)</p>
+            </button>
+          </div>
+          
+          <Link href="/lessons" className="mt-8 inline-block text-slate-400 hover:text-indigo-600 font-bold transition-colors">
+            Back to Lessons
+          </Link>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-slate-950 flex flex-col items-center pt-12 pb-24 px-6 transition-colors duration-500">
@@ -102,17 +147,18 @@ function QuizContent() {
             Vocabulary Master
            </motion.h2>
 
-           <motion.button
-            whileHover={{ rotate: 180 }}
-            transition={{ duration: 0.5 }}
-            onClick={() => { setScore(0); setTotalAttempted(0); fetchQuiz(); }}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
-           >
-             <RotateCcw size={20} />
-           </motion.button>
+            <motion.button
+             whileHover={{ rotate: 180 }}
+             transition={{ duration: 0.5 }}
+             onClick={() => { setQuizMode(null); setSessionWords([]); setScore(0); }}
+             className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+            >
+              <RotateCcw size={20} />
+            </motion.button>
         </div>
         
         <ProgressBar progress={progress} />
+        <p className="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{currentIndex + 1} / {sessionWords.length} Words</p>
       </div>
 
       <AnimatePresence mode="wait">
@@ -131,25 +177,25 @@ function QuizContent() {
               ))}
             </div>
           </motion.div>
-        ) : quiz ? (
+        ) : currentQuiz ? (
           <motion.div 
             key="quiz"
             className="w-full max-w-2xl"
           >
             <QuizCard 
-              word={quiz.english_word} 
-              examples={quiz.examples} 
+              word={currentQuiz.english_word} 
+              examples={currentQuiz.examples} 
               showExamples={!!selectedOption} 
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
-              {quiz.options.map((option, idx) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-10">
+              {currentQuiz.options.map((option, idx) => (
                 <QuizOption
                   key={idx}
                   option={option}
                   isSelected={selectedOption === option}
                   isCorrect={isCorrect}
-                  correctOption={quiz.correct_meaning}
+                  correctOption={currentQuiz.correct_meaning}
                   disabled={!!selectedOption}
                   onClick={() => handleOptionClick(option)}
                 />
@@ -166,10 +212,10 @@ function QuizContent() {
                   className="flex justify-center"
                 >
                   <button
-                    onClick={fetchQuiz}
-                    className="group relative px-10 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-xl flex items-center gap-3 hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/25 active:scale-95"
+                    onClick={handleNext}
+                    className="group relative px-8 py-4 sm:px-10 sm:py-5 bg-indigo-600 text-white rounded-2xl font-bold text-lg sm:text-xl flex items-center gap-3 hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/25 active:scale-95"
                   >
-                    Next Word 
+                    {currentIndex === sessionWords.length - 1 ? "Finish Quiz" : "Next Word"} 
                     <motion.div
                       animate={{ x: [0, 5, 0] }}
                       transition={{ repeat: Infinity, duration: 1.5 }}
@@ -181,7 +227,12 @@ function QuizContent() {
               )}
             </AnimatePresence>
           </motion.div>
-        ) : null}
+        ) : (
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-bold dark:text-white">No words found for this selection</h2>
+            <Link href="/lessons" className="mt-4 inline-block text-indigo-600 font-bold">Go Back</Link>
+          </div>
+        )}
       </AnimatePresence>
     </div>
   );

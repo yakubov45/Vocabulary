@@ -47,6 +47,33 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message || 'Server Error' }, { status: 500 });
   }
 }
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any)?.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { english_word, uzbek_meaning, examples, category, rank } = await req.json();
+
+    if (!english_word || !uzbek_meaning || !category || !rank) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    await dbConnect();
+    const newWord = await Word.create({
+      english_word,
+      uzbek_meaning,
+      examples: examples || [],
+      category,
+      rank,
+    });
+
+    return NextResponse.json({ message: 'Word created successfully', word: newWord }, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Server Error' }, { status: 500 });
+  }
+}
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -56,10 +83,19 @@ export async function DELETE(req: NextRequest) {
     }
 
     await dbConnect();
-    const result = await Word.deleteMany({});
+    
+    const searchParams = req.nextUrl.searchParams;
+    const rank = searchParams.get('rank');
+    const category = searchParams.get('category');
+
+    let query = {};
+    if (rank) query = { rank };
+    if (category) query = { category };
+
+    const result = await Word.deleteMany(query);
     
     return NextResponse.json({ 
-      message: 'All words deleted successfully',
+      message: result.deletedCount > 0 ? 'Deleted successfully' : 'No words found to delete',
       count: result.deletedCount 
     });
   } catch (error: any) {

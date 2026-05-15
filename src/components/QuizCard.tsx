@@ -13,7 +13,7 @@ export default function QuizCard({ word, examples, showExamples }: QuizCardProps
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative w-full p-10 mb-10 rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl overflow-hidden"
+      className="relative w-full p-6 sm:p-10 mb-6 sm:mb-10 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl overflow-hidden"
     >
       {/* Decorative background elements */}
       <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-white/10 rounded-full blur-3xl" />
@@ -24,7 +24,7 @@ export default function QuizCard({ word, examples, showExamples }: QuizCardProps
           key={word}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8"
+          className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-4 sm:mb-8 break-words w-full"
         >
           {word}
         </motion.h1>
@@ -44,7 +44,7 @@ export default function QuizCard({ word, examples, showExamples }: QuizCardProps
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="text-indigo-50/80 italic text-lg leading-relaxed"
+                    className="text-indigo-50/80 italic text-sm sm:text-lg leading-relaxed"
                   >
                     "{ex}"
                   </motion.p>

@@ -173,6 +173,23 @@ export default function LessonsPage() {
                 </Link>
               </div>
 
+              {/* Multi-select actions */}
+              <div className="flex justify-between items-center mb-4 px-2">
+                <h2 className="text-sm font-bold text-slate-400 uppercase">Categories</h2>
+                <button 
+                  onClick={() => {
+                    if (multiSelected.length === categories.length) {
+                      setMultiSelected([]);
+                    } else {
+                      setMultiSelected([...categories]);
+                    }
+                  }}
+                  className="text-xs font-bold text-indigo-600 hover:underline"
+                >
+                  {multiSelected.length === categories.length ? "Deselect All" : "Select All"}
+                </button>
+              </div>
+
               {multiSelected.length > 0 && (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.9 }}

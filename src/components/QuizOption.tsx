@@ -70,7 +70,7 @@ export default function QuizOption({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "group relative flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 text-left",
+        "group relative flex items-center justify-between p-4 sm:p-5 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 text-left",
         "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm",
         !disabled && "hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md",
         
@@ -95,7 +95,7 @@ export default function QuizOption({
            isSelected && isCorrect === false ? <XCircle size={18} strokeWidth={3} /> :
            <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700 group-hover:bg-indigo-400" />}
         </div>
-        <span className="text-lg font-semibold tracking-tight">{option}</span>
+        <span className="text-sm sm:text-base font-semibold tracking-tight">{option}</span>
       </div>
       
       <AnimatePresence>
