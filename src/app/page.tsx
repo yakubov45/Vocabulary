@@ -89,12 +89,28 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="max-w-7xl mx-auto px-6 py-12 text-center">
-        <p className="text-slate-400 dark:text-slate-500 text-sm font-medium tracking-wide">
-          Words are added after each lesson.
-        </p>
-        <p className="text-[10px] text-slate-300 dark:text-slate-600 font-bold uppercase tracking-[0.2em] mt-4">
-          © {new Date().getFullYear()} VocabFlow
-        </p>
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-slate-400 dark:text-slate-500 text-sm font-medium tracking-wide">
+            Words are added after each lesson.
+          </p>
+          <div className="h-px w-12 bg-slate-100 dark:bg-slate-900" />
+          <div className="flex flex-col gap-2">
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold">
+              Created by <span className="text-indigo-600 dark:text-indigo-400">Muhammad</span>
+            </p>
+            <a 
+              href="https://t.me/ielts_cream" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-slate-400 dark:text-slate-500 text-[11px] hover:text-indigo-500 transition-colors flex items-center justify-center gap-1.5"
+            >
+              Translated by <span className="font-bold underline decoration-indigo-500/30">IELTS-CREAM🍦| 8.5</span>
+            </a>
+          </div>
+          <p className="text-[10px] text-slate-300 dark:text-slate-700 font-black uppercase tracking-[0.3em] mt-4">
+            © {new Date().getFullYear()} VocabFlow
+          </p>
+        </div>
       </footer>
     </main>
   );
