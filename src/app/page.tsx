@@ -86,6 +86,16 @@ export default function Home() {
           </motion.div>
         </motion.div>
       </section>
+
+      {/* Footer */}
+      <footer className="max-w-7xl mx-auto px-6 py-12 text-center">
+        <p className="text-slate-400 dark:text-slate-500 text-sm font-medium tracking-wide">
+          Words are added after each lesson.
+        </p>
+        <p className="text-[10px] text-slate-300 dark:text-slate-600 font-bold uppercase tracking-[0.2em] mt-4">
+          © {new Date().getFullYear()} VocabFlow
+        </p>
+      </footer>
     </main>
   );
 }
