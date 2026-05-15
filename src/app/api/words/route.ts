@@ -10,9 +10,12 @@ export async function GET(req: NextRequest) {
     
     const searchParams = req.nextUrl.searchParams;
     const category = searchParams.get('category');
+    const rank = searchParams.get('rank');
     const limit = parseInt(searchParams.get('limit') || '1000');
     
-    const query = category ? { category } : {};
+    const query: any = {};
+    if (category) query.category = category;
+    if (rank) query.rank = rank;
 
     const cleanText = (text: string) => text ? text.replace(/\[cite:.*?\]/g, "").trim() : "";
 

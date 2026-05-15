@@ -10,8 +10,14 @@ export async function GET(req: NextRequest) {
     
     const searchParams = req.nextUrl.searchParams;
     const categoryParam = searchParams.get('category');
+    const rankParam = searchParams.get('rank');
     const categories = categoryParam ? categoryParam.split(',').filter(Boolean) : [];
-    const matchStage = categories.length > 0 ? { $match: { category: { $in: categories } } } : { $match: {} };
+    
+    const matchQuery: any = {};
+    if (categories.length > 0) matchQuery.category = { $in: categories };
+    if (rankParam) matchQuery.rank = rankParam;
+
+    const matchStage = { $match: matchQuery };
 
     // 1. Fetch one random word (the question)
     const randomQuestionWord = await Word.aggregate([

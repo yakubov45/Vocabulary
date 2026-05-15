@@ -34,9 +34,11 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const [categoryTitle, setCategoryTitle] = useState("");
+  const [rankTitle, setRankTitle] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [allRanks, setAllRanks] = useState<string[]>([]);
 
   const filteredWords = words.filter(word => 
     word.english_word.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -46,7 +48,18 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchWords();
     fetchCategories();
+    fetchRanks();
   }, []);
+
+  const fetchRanks = async () => {
+    try {
+      const res = await fetch("/api/ranks", { cache: 'no-store' });
+      const data = await res.json();
+      if (data.ranks) setAllRanks(data.ranks);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -102,6 +115,7 @@ export default function AdminDashboard() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("category", categoryTitle);
+    formData.append("rank", rankTitle);
 
     try {
       const res = await fetch("/api/admin/upload", {
@@ -113,6 +127,7 @@ export default function AdminDashboard() {
       if (res.ok) {
         setFile(null);
         setCategoryTitle("");
+        setRankTitle("");
         fetchWords();
         fetchCategories();
       } else {
@@ -245,14 +260,31 @@ export default function AdminDashboard() {
               <h3 className="text-lg font-bold px-1 dark:text-white">Import Vocabulary</h3>
               
               <div className="space-y-2 px-1">
-                <label className="text-xs font-bold text-slate-400 uppercase">Lesson / Category Title</label>
+                <label className="text-xs font-bold text-slate-400 uppercase">Daraja (Rank)</label>
                 <input 
                   type="text" 
+                  list="rank-list"
+                  placeholder="Masalan: Elementary, A1, Rank 1..." 
+                  value={rankTitle}
+                  onChange={(e) => setRankTitle(e.target.value)}
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition mb-4"
+                />
+                <datalist id="rank-list">
+                  {allRanks.map(r => <option key={r} value={r} />)}
+                </datalist>
+
+                <label className="text-xs font-bold text-slate-400 uppercase">Bo'lim (Category) Title</label>
+                <input 
+                  type="text" 
+                  list="category-list"
                   placeholder="e.g. Lesson 1: Basics" 
                   value={categoryTitle}
                   onChange={(e) => setCategoryTitle(e.target.value)}
                   className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
                 />
+                <datalist id="category-list">
+                  {categories.map(c => <option key={c} value={c} />)}
+                </datalist>
               </div>
 
               <label 

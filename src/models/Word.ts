@@ -5,6 +5,7 @@ export interface IWord extends Document {
   uzbek_meaning: string;
   examples: string[];
   category: string;
+  rank: string;
   createdAt: Date;
 }
 
@@ -30,6 +31,12 @@ const WordSchema: Schema = new Schema({
     trim: true,
     index: true,
   },
+  rank: {
+    type: String,
+    required: [true, 'Rank is required'],
+    trim: true,
+    index: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -41,7 +48,7 @@ function arrayLimit(val: string[]) {
 }
 
 // In development, we want to ensure the model reflects schema changes (like adding 'category')
-if (mongoose.models.Word && !mongoose.models.Word.schema.paths.category) {
+if (mongoose.models.Word && (!mongoose.models.Word.schema.paths.category || !mongoose.models.Word.schema.paths.rank)) {
   delete mongoose.models.Word;
 }
 

@@ -26,15 +26,22 @@ function QuizContent() {
 
   const searchParams = useSearchParams();
   const category = searchParams.get("category");
+  const rank = searchParams.get("rank");
 
   const fetchQuiz = async () => {
     setLoading(true);
     setSelectedOption(null);
     setIsCorrect(null);
     try {
-      const url = category 
-        ? `/api/quiz/generate?category=${encodeURIComponent(category)}` 
-        : "/api/quiz/generate";
+      let url = "/api/quiz/generate";
+      const params = new URLSearchParams();
+      if (category) params.append("category", category);
+      if (rank) params.append("rank", rank);
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
       const res = await fetch(url);
       const data = await res.json();
       if (data.english_word) {

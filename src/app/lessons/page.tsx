@@ -15,24 +15,43 @@ interface Word {
 }
 
 export default function LessonsPage() {
+  const [ranks, setRanks] = useState<string[]>([]);
+  const [selectedRank, setSelectedRank] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categoryWords, setCategoryWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"categories" | "wordlist">("categories");
+  const [viewMode, setViewMode] = useState<"ranks" | "categories" | "wordlist">("ranks");
   const [searchTerm, setSearchTerm] = useState("");
   const [multiSelected, setMultiSelected] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchCategories();
+    fetchRanks();
   }, []);
 
-  const fetchCategories = async () => {
+  const fetchRanks = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/categories", { cache: 'no-store' });
+      const res = await fetch("/api/ranks", { cache: 'no-store' });
       const data = await res.json();
-      if (data.categories) setCategories(data.categories);
+      if (data.ranks) setRanks(data.ranks);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async (rank: string) => {
+    setLoading(true);
+    setSelectedRank(rank);
+    try {
+      const res = await fetch(`/api/categories?rank=${encodeURIComponent(rank)}`, { cache: 'no-store' });
+      const data = await res.json();
+      if (data.categories) {
+        setCategories(data.categories);
+        setViewMode("categories");
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -73,9 +92,9 @@ export default function LessonsPage() {
         {/* Header */}
         <header className="flex items-center justify-between mb-10">
           <div className="flex gap-2">
-            {viewMode === "wordlist" ? (
+            {viewMode !== "ranks" ? (
               <button 
-                onClick={() => setViewMode("categories")}
+                onClick={() => setViewMode(viewMode === "wordlist" ? "categories" : "ranks")}
                 className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400"
               >
                 <ArrowLeft size={24} />
@@ -88,8 +107,8 @@ export default function LessonsPage() {
             <ThemeToggle />
           </div>
           
-          <h1 className="text-2xl font-black tracking-tight dark:text-white">
-            {viewMode === "categories" ? "Choose Lesson" : selectedCategory}
+          <h1 className="text-2xl font-black tracking-tight dark:text-white text-center flex-1">
+            {viewMode === "ranks" ? "Choose Level" : viewMode === "categories" ? "Choose Lesson" : selectedCategory}
           </h1>
           
           <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
@@ -110,6 +129,31 @@ export default function LessonsPage() {
                 <div key={i} className="h-20 bg-slate-200 dark:bg-slate-900 rounded-[1.5rem] animate-pulse" />
               ))}
             </motion.div>
+          ) : viewMode === "ranks" ? (
+            <motion.div 
+              key="ranks"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="grid grid-cols-1 gap-4"
+            >
+              {ranks.map((rank, idx) => (
+                <div key={idx} className="relative group cursor-pointer" onClick={() => fetchCategories(rank)}>
+                  <div className="w-full flex items-center justify-between p-6 bg-white dark:bg-slate-900 rounded-[1.5rem] border-2 border-transparent transition-all shadow-sm hover:border-indigo-500">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors text-xl font-black">
+                        {rank[0].toUpperCase()}
+                      </div>
+                      <h3 className="font-bold text-xl dark:text-white leading-tight">{rank}</h3>
+                    </div>
+                    <ChevronRight className="text-slate-300" />
+                  </div>
+                </div>
+              ))}
+              {ranks.length === 0 && (
+                <p className="text-center text-slate-500 mt-10">No ranks found yet.</p>
+              )}
+            </motion.div>
           ) : viewMode === "categories" ? (
             <motion.div 
               key="categories"
@@ -118,6 +162,17 @@ export default function LessonsPage() {
               exit={{ opacity: 0, x: -20 }}
               className="grid grid-cols-1 gap-4"
             >
+              {/* Start Quiz for entire Rank */}
+              <div className="mb-4">
+                <Link 
+                  href={`/quiz?rank=${encodeURIComponent(selectedRank || "")}`}
+                  className="flex items-center justify-center gap-3 p-5 bg-indigo-600 text-white rounded-[1.5rem] font-bold text-lg shadow-xl shadow-indigo-500/20 hover:bg-indigo-500 transition-all active:scale-95"
+                >
+                  <Play fill="currentColor" size={20} />
+                  Start Level Quiz
+                </Link>
+              </div>
+
               {multiSelected.length > 0 && (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.9 }}

@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const category = formData.get('category') as string;
+    const rank = formData.get('rank') as string;
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
@@ -23,6 +24,10 @@ export async function POST(req: NextRequest) {
 
     if (!category) {
       return NextResponse.json({ error: 'Please provide a category title' }, { status: 400 });
+    }
+
+    if (!rank) {
+      return NextResponse.json({ error: 'Please provide a rank (Level)' }, { status: 400 });
     }
 
     // 3. Parse .json file
@@ -58,6 +63,7 @@ export async function POST(req: NextRequest) {
         uzbek_meaning,
         examples,
         category,
+        rank,
       };
     }).filter(word => word.english_word && word.uzbek_meaning); // Only keep valid entries
 
