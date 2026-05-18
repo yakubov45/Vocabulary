@@ -40,7 +40,18 @@ function QuizContent() {
       const res = await fetch(url);
       const data = await res.json();
       if (data.words && data.words.length > 0) {
-        setSessionWords(data.words);
+        const stored = localStorage.getItem('knownWords');
+        const knownIds = stored ? JSON.parse(stored) : [];
+        const finalWords = data.words.filter((w: any) => !knownIds.includes(w.id));
+        
+        if (finalWords.length === 0) {
+          alert("You have mastered all the words in this selection! You can un-hide them from the lessons page.");
+          setQuizMode(null);
+          setLoading(false);
+          return;
+        }
+
+        setSessionWords(finalWords);
         setCurrentIndex(0);
         setSelectedOption(null);
         setIsCorrect(null);

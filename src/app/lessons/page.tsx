@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { BookOpen, ArrowLeft, Play, List, Search, ChevronRight, Check } from "lucide-react";
+import { BookOpen, ArrowLeft, Play, List, Search, ChevronRight, Check, EyeOff, Eye } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Word {
@@ -24,10 +24,22 @@ export default function LessonsPage() {
   const [viewMode, setViewMode] = useState<"ranks" | "categories" | "wordlist">("ranks");
   const [searchTerm, setSearchTerm] = useState("");
   const [multiSelected, setMultiSelected] = useState<string[]>([]);
+  const [knownWords, setKnownWords] = useState<string[]>([]);
+  const [showKnown, setShowKnown] = useState(false);
 
   useEffect(() => {
+    const stored = localStorage.getItem('knownWords');
+    if (stored) setKnownWords(JSON.parse(stored));
     fetchRanks();
   }, []);
+
+  const toggleKnownWord = (id: string) => {
+    setKnownWords(prev => {
+      const next = prev.includes(id) ? prev.filter(wId => wId !== id) : [...prev, id];
+      localStorage.setItem('knownWords', JSON.stringify(next));
+      return next;
+    });
+  };
 
   const fetchRanks = async () => {
     setLoading(true);
@@ -81,10 +93,12 @@ export default function LessonsPage() {
     );
   };
 
-  const filteredWords = categoryWords.filter(w => 
-    w.english_word.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    w.uzbek_meaning.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredWords = categoryWords.filter(w => {
+    const matchesSearch = w.english_word.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          w.uzbek_meaning.toLowerCase().includes(searchTerm.toLowerCase());
+    const isKnown = knownWords.includes(w._id);
+    return matchesSearch && (showKnown || !isKnown);
+  });
 
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-slate-950 p-6 md:p-10 transition-colors duration-300">
@@ -266,26 +280,44 @@ export default function LessonsPage() {
                 </Link>
               </div>
 
-              <div className="relative">
-                <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder="Search in this lesson..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-6 py-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-                />
+              <div className="flex items-center justify-between mt-4">
+                <div className="relative flex-1 mr-4">
+                  <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Search in this lesson..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-6 py-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowKnown(!showKnown)}
+                  className={`p-4 rounded-[1.5rem] flex items-center justify-center transition-all ${showKnown ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400" : "bg-white text-slate-400 dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800"}`}
+                  title={showKnown ? "Hide known words" : "Show known words"}
+                >
+                  {showKnown ? <Eye size={24} /> : <EyeOff size={24} />}
+                </button>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 mt-6">
                 {filteredWords.map((word) => (
                   <div 
                     key={word._id}
-                    className="p-5 bg-white dark:bg-slate-900 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col"
+                    className={`p-5 bg-white dark:bg-slate-900 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col transition-all ${knownWords.includes(word._id) ? "opacity-50 grayscale" : ""}`}
                   >
-                    <div className="flex flex-col mb-3">
-                      <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 mb-1">{word.english_word}</span>
-                      <span className="text-slate-600 dark:text-slate-300 font-medium">{word.uzbek_meaning}</span>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex flex-col">
+                        <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 mb-1">{word.english_word}</span>
+                        <span className="text-slate-600 dark:text-slate-300 font-medium">{word.uzbek_meaning}</span>
+                      </div>
+                      <button
+                        onClick={() => toggleKnownWord(word._id)}
+                        className={`p-3 rounded-xl transition-all ${knownWords.includes(word._id) ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-slate-50 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:bg-slate-800/50"}`}
+                        title={knownWords.includes(word._id) ? "Mark as learning" : "Mark as known (Hide)"}
+                      >
+                        {knownWords.includes(word._id) ? <EyeOff size={20} /> : <Check size={20} />}
+                      </button>
                     </div>
                     
                     {word.examples && word.examples.length > 0 && (

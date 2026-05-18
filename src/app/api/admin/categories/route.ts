@@ -11,7 +11,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { oldTitle, newTitle } = await req.json();
+    const { oldTitle, newTitle, type = 'category', rankContext } = await req.json();
 
     if (!oldTitle || !newTitle) {
       return NextResponse.json({ error: 'Both old and new titles are required' }, { status: 400 });
@@ -19,10 +19,19 @@ export async function PATCH(req: NextRequest) {
 
     await dbConnect();
     
-    const result = await Word.updateMany(
-      { category: oldTitle },
-      { $set: { category: newTitle } }
-    );
+    let query: any = {};
+    let update: any = {};
+
+    if (type === 'rank') {
+      query = { rank: oldTitle };
+      update = { $set: { rank: newTitle } };
+    } else {
+      query = { category: oldTitle };
+      if (rankContext) query.rank = rankContext;
+      update = { $set: { category: newTitle } };
+    }
+
+    const result = await Word.updateMany(query, update);
 
     return NextResponse.json({ 
       message: 'Category renamed successfully',

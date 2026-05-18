@@ -204,6 +204,44 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleRenameRank = async (oldRank: string) => {
+    const newRank = prompt("Enter new name for lesson:", oldRank);
+    if (!newRank || newRank === oldRank) return;
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: 'rank', oldTitle: oldRank, newTitle: newRank })
+      });
+      if (res.ok) {
+        fetchWords();
+        fetchRanks();
+        if (selectedRank === oldRank) setSelectedRank(newRank);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRenameCategory = async (oldCat: string) => {
+    const newCat = prompt("Enter new name for section:", oldCat);
+    if (!newCat || newCat === oldCat) return;
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: 'category', oldTitle: oldCat, newTitle: newCat, rankContext: selectedRank })
+      });
+      if (res.ok) {
+        fetchWords();
+        if (selectedRank) fetchCategoriesForRank(selectedRank);
+        if (activeCategory === oldCat) setActiveCategory(newCat);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this word?")) return;
     try {
@@ -249,25 +287,6 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       alert("Error adding word");
-    }
-  };
-
-  const handleRenameCategory = async (oldTitle: string) => {
-    if (!newCategoryName.trim()) return;
-    try {
-      const res = await fetch("/api/admin/categories", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oldTitle, newTitle: newCategoryName }),
-      });
-      if (res.ok) {
-        setEditingCategory(null);
-        setNewCategoryName("");
-        fetchWords();
-        fetchCategories();
-      }
-    } catch (err) {
-      console.error(err);
     }
   };
 
@@ -492,12 +511,20 @@ export default function AdminDashboard() {
                       >
                         {rank}
                       </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleDeleteRank(rank); }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-white/50 hover:text-white bg-rose-500/0 hover:bg-rose-500 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleRenameRank(rank); }}
+                          className="p-2 text-indigo-500/50 hover:text-white hover:bg-indigo-500 rounded-lg transition-all"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDeleteRank(rank); }}
+                          className="p-2 text-rose-500/50 hover:text-white hover:bg-rose-500 rounded-lg transition-all"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                   {allRanks.length === 0 && <p className="text-xs text-slate-400 italic p-4">No lessons yet</p>}
@@ -537,17 +564,32 @@ export default function AdminDashboard() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-10">
                       {rankCategories.map(cat => (
-                        <button 
-                          key={cat}
-                          onClick={() => setActiveCategory(cat)}
-                          className={`p-6 rounded-[1.5rem] border-2 text-left transition-all ${activeCategory === cat ? "border-indigo-500 bg-white dark:bg-slate-900 shadow-xl shadow-indigo-500/5" : "bg-white dark:bg-slate-900 border-transparent hover:border-indigo-100"}`}
-                        >
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-bold dark:text-white">{cat}</span>
-                            <BookOpen size={16} className={activeCategory === cat ? "text-indigo-600" : "text-slate-300"} />
+                        <div key={cat} className="relative group">
+                          <button 
+                            onClick={() => setActiveCategory(cat)}
+                            className={`w-full h-full p-6 rounded-[1.5rem] border-2 text-left transition-all ${activeCategory === cat ? "border-indigo-500 bg-white dark:bg-slate-900 shadow-xl shadow-indigo-500/5" : "bg-white dark:bg-slate-900 border-transparent hover:border-indigo-100"}`}
+                          >
+                            <div className="flex justify-between items-center mb-1 pr-16">
+                              <span className="font-bold dark:text-white truncate">{cat}</span>
+                              <BookOpen size={16} className={activeCategory === cat ? "text-indigo-600" : "text-slate-300"} />
+                            </div>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Ready to upload</p>
+                          </button>
+                          <div className="absolute right-3 top-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleRenameCategory(cat); }}
+                              className="p-2 text-indigo-500/50 hover:text-white hover:bg-indigo-500 rounded-lg transition-all"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleDeleteCategory(cat); }}
+                              className="p-2 text-rose-500/50 hover:text-white hover:bg-rose-500 rounded-lg transition-all"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Ready to upload</p>
-                        </button>
+                        </div>
                       ))}
                       {rankCategories.length === 0 && (
                         <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl">
