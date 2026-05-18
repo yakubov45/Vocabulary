@@ -42,6 +42,9 @@ function QuizContent() {
       if (data.words && data.words.length > 0) {
         setSessionWords(data.words);
         setCurrentIndex(0);
+        setSelectedOption(null);
+        setIsCorrect(null);
+        setScore(0);
       }
     } catch (error) {
       console.error("Error starting session:", error);
@@ -150,7 +153,7 @@ function QuizContent() {
             <motion.button
              whileHover={{ rotate: 180 }}
              transition={{ duration: 0.5 }}
-             onClick={() => { setQuizMode(null); setSessionWords([]); setScore(0); }}
+             onClick={() => { setQuizMode(null); setSessionWords([]); setScore(0); setSelectedOption(null); setIsCorrect(null); }}
              className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
             >
               <RotateCcw size={20} />
