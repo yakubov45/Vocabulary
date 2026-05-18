@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const cleanText = (text: string) => text ? text.replace(/\[cite:.*?\]/g, "").trim() : "";
 
     const words = await Word.find(query)
-      .sort({ english_word: 1 })
+      .sort({ _id: 1 })
       .limit(limit);
 
     const cleanedWords = words.map(w => ({

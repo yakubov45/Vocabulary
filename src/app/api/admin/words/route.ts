@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const cleanText = (text: string) => text ? text.replace(/\[cite:.*?\]/g, "").trim() : "";
 
     const words = await Word.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ category: 1, _id: 1 })
       .skip((page - 1) * limit)
       .limit(limit);
 

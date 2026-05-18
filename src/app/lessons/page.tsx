@@ -62,7 +62,8 @@ export default function LessonsPage() {
   const fetchCategoryWords = async (cat: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/words?limit=1000&category=${encodeURIComponent(cat)}`);
+      const rankParam = selectedRank ? `&rank=${encodeURIComponent(selectedRank)}` : "";
+      const res = await fetch(`/api/words?limit=1000&category=${encodeURIComponent(cat)}${rankParam}`);
       const data = await res.json();
       if (data.words) setCategoryWords(data.words);
       setSelectedCategory(cat);
@@ -201,7 +202,7 @@ export default function LessonsPage() {
                     <button onClick={() => setMultiSelected([])} className="text-xs underline opacity-80">Clear all</button>
                   </div>
                   <Link 
-                    href={`/quiz?category=${encodeURIComponent(multiSelected.join(","))}`}
+                    href={`/quiz?rank=${encodeURIComponent(selectedRank || "")}&category=${encodeURIComponent(multiSelected.join(","))}`}
                     className="w-full py-3 bg-white text-indigo-600 rounded-xl font-black text-center shadow-sm hover:bg-indigo-50 transition-colors"
                   >
                     Start Mixed Quiz

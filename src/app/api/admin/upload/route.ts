@@ -73,12 +73,9 @@ export async function POST(req: NextRequest) {
 
     // 5. Connect to DB and insert
     await dbConnect();
-    
-    // Automatically sort them alphabetically by english_word before insert
-    wordsToInsert.sort((a, b) => a.english_word.localeCompare(b.english_word));
 
     console.log(`Inserting ${wordsToInsert.length} words into category: ${category}`);
-    const result = await Word.insertMany(wordsToInsert, { ordered: false });
+    const result = await Word.insertMany(wordsToInsert, { ordered: true });
 
     return NextResponse.json({
       message: 'Words successfully uploaded and inserted',
